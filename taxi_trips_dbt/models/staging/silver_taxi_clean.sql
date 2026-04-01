@@ -2,4 +2,5 @@ SELECT
     *
 FROM
     {{ref('int_taxi_quality')}}
-quality_score = 0
+WHERE
+    quality_score = 0
