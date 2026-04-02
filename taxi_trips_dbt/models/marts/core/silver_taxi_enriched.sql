@@ -23,7 +23,7 @@ WITH source AS (
 		trip_duration_min, 
 		geo_distance_km
 	FROM 
-		dev.main.silver_taxi_clean
+		{{ref('silver_taxi_clean')}}
 ),
 
 new_columns AS (
