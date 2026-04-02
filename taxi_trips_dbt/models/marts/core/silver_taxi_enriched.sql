@@ -47,7 +47,7 @@ new_columns AS (
 			WHEN trip_hour < 12 THEN 'manhã'
 			WHEN trip_hour < 18 THEN 'tarde'
 			ELSE 'noite'
-		END AS turno,
+		END AS shift,
 		
 		(total_amount / trip_duration_min) AS revenue_per_min,
 		(total_amount / trip_distance) AS revenue_per_mile,
