@@ -35,5 +35,12 @@ models:
     source:
       +materialized: table
 
-    staging:
+    intermediate:
       +materialized: table
+
+    marts:
+      analytics:
+        +materialized: view
+
+      core:
+        +materialized: table
