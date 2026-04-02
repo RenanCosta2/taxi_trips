@@ -6,6 +6,7 @@ WITH source AS (
 		tpep_dropoff_datetime, 
 		passenger_count, 
 		trip_distance, 
+		speed_mph,
 		pickup_longitude, 
 		pickup_latitude, 
 		RateCodeID, 
@@ -31,8 +32,8 @@ new_columns AS (
 		*,
 		
 		CASE
-			WHEN geo_distance_km >= 25 THEN 'longa'
-			WHEN geo_distance_km >= 10 THEN 'média'
+			WHEN trip_distance >= 20 THEN 'longa'
+			WHEN trip_distance >= 10 THEN 'média'
 			ELSE 'curta'
 		END AS distance_category,
 		
