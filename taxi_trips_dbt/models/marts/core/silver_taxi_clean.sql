@@ -4,6 +4,7 @@ SELECT
     tpep_dropoff_datetime,
     passenger_count,
     trip_distance,
+    speed_mph,
     pickup_longitude,
     pickup_latitude,
     RateCodeID,

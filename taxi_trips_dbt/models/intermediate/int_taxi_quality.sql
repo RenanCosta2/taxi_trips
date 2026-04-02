@@ -127,9 +127,10 @@ clean_base AS (
     FROM source
 ),
 
-duration_calc AS (
+trip_metrics AS (
     SELECT *,
-        datediff('minute', tpep_pickup_datetime, tpep_dropoff_datetime) AS trip_duration_min
+        datediff('minute', tpep_pickup_datetime, tpep_dropoff_datetime) AS trip_duration_min,
+		trip_distance / (trip_duration_min / 60.0) AS speed_mph
     FROM clean_base
 ),
 
@@ -201,15 +202,21 @@ outlier_flags AS (
 		END AS flag_total_outlier,
 		
 		CASE
-			WHEN trip_duration_min<= 0 THEN 1
+			WHEN trip_duration_min <= 0 THEN 1
 		    WHEN trip_duration_min > 1440 THEN 1
 		    WHEN trip_duration_min < duration_lower 
      			OR trip_duration_min > duration_upper THEN 1
      		ELSE 0
-		END AS flag_duration_outlier
+		END AS flag_duration_outlier,
+
+		CASE
+			WHEN speed_mph < 0 THEN 1
+			WHEN speed_mph > 100 THEN 1
+			ELSE 0
+		END AS flag_speed_outlier
 		
 	FROM
-		duration_calc
+		trip_metrics
 	CROSS JOIN 
 		bounds
 ),
@@ -302,6 +309,7 @@ quality_data AS (
 			flag_tolls_outlier +
 			flag_total_outlier +
 			flag_duration_outlier +
+			flag_speed_outlier +
 			flag_geo_distance_invalid +
 			flag_duplicate
 		) AS quality_score
