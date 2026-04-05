@@ -2,7 +2,6 @@ WITH source AS (
 	SELECT 
 		VendorID, 
 		tpep_pickup_datetime, 
-		EXTRACT(HOUR FROM tpep_pickup_datetime) AS trip_hour,
 		tpep_dropoff_datetime, 
 		passenger_count, 
 		trip_distance, 
@@ -30,6 +29,8 @@ WITH source AS (
 new_columns AS (
 	SELECT
 		*,
+		EXTRACT(HOUR FROM tpep_pickup_datetime) AS trip_hour,
+		EXTRACT(ISODOW FROM tpep_pickup_datetime) AS day_of_week,
 		
 		CASE
 			WHEN trip_distance >= 20 THEN 'longa'
