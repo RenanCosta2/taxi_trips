@@ -51,10 +51,12 @@ clean_base AS (
         END AS flag_null_distance,
         CASE 
 	        WHEN pickup_longitude IS NULL OR pickup_latitude IS NULL THEN 1 
+			WHEN pickup_longitude = 0 OR pickup_latitude = 0 THEN 1
 	        ELSE 0 
         END AS flag_null_pickup_geo,
         CASE 
 	        WHEN dropoff_longitude IS NULL OR dropoff_latitude IS NULL THEN 1 
+			WHEN dropoff_longitude = 0 OR dropoff_latitude = 0 THEN 1
 	        ELSE 0 
         END AS flag_null_dropoff_geo,
         CASE
