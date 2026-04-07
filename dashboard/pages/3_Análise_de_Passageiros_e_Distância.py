@@ -8,7 +8,14 @@ st.set_page_config(layout="wide")
 init_filters()
 render_filters()
 
-filters = st.session_state.filters
+filters = {
+    "shift": st.session_state.shift,
+    "payment": st.session_state.payment,
+    "vendor": st.session_state.vendor,
+    "hour_range": st.session_state.hour_range,
+    "days": st.session_state.days
+}
+
 where, params = build_where(filters)
 
 # ===== DASHBOARD ANÁLISE DE PASSAGEIROS E DISTÂNCIA =====
@@ -38,6 +45,30 @@ def get_kpis_passenger(where, params):
     """, params)
 
 @st.cache_data
+def get_distance_category(where, params):
+    return run_query(f"""
+        SELECT  
+            distance_category,
+            COUNT(*) AS total_trips
+        FROM fct_trips
+        {where}
+        GROUP BY
+            distance_category
+    """, params)
+
+@st.cache_data
+def get_duration_category(where, params):
+    return run_query(f"""
+        SELECT  
+            trip_duration_category,
+            COUNT(*) AS total_trips
+        FROM fct_trips
+        {where}
+        GROUP BY
+            trip_duration_category
+    """, params)
+
+@st.cache_data
 def get_scatter_data(where, params):
     return run_query(f"""
         SELECT
@@ -53,6 +84,8 @@ def get_scatter_data(where, params):
 
 kpis = get_kpis(where, params)
 kpis_passenger = get_kpis_passenger(where, params)
+distance_category = get_distance_category(where, params)
+duration_category = get_duration_category(where, params)
 scatter = get_scatter_data(where, params).sample(n=5000, random_state=42)
 
 # ===== UI =====
@@ -66,8 +99,15 @@ col1.metric("Média de Passageiros", f"{row['avg_passenger']:,}")
 col2.metric("Distância Média", f"{row['avg_mile_distance']:.2f} milhas")
 col3.metric("Duração Média", f"{row['avg_duration_min']:.1f} min")
 
-st.subheader("Passageiros por Corrida")
-st.bar_chart(kpis_passenger.set_index("passenger_count")["total_trips"])
+col4, col5, col6 = st.columns(3)
+col4.subheader("Viagens por Distância")
+col4.bar_chart(distance_category.set_index("distance_category")["total_trips"], sort=True)
+col4.caption("Curta: até 2 milhas | Média: 2–5 milhas | Longa: acima de 5 milhas")
+col5.subheader("Viagens por Duração de Corrida")
+col5.bar_chart(duration_category.set_index("trip_duration_category")["total_trips"], sort=True)
+col5.caption("Curta: até 10 min | Normal: 10–20 min | Longa: acima de 20 min")
+col6.subheader("Passageiros por Corrida")
+col6.bar_chart(kpis_passenger.set_index("passenger_count")["total_trips"])
 
 fig = px.scatter(
     scatter,

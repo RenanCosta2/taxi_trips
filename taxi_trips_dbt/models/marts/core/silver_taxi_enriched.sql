@@ -33,14 +33,14 @@ new_columns AS (
 		EXTRACT(ISODOW FROM tpep_pickup_datetime) AS day_of_week,
 		
 		CASE
-			WHEN trip_distance >= 20 THEN 'longa'
-			WHEN trip_distance >= 10 THEN 'média'
+			WHEN trip_distance > 5 THEN 'longa'
+			WHEN trip_distance >= 3 THEN 'média'
 			ELSE 'curta'
 		END AS distance_category,
 		
 		CASE
-			WHEN trip_duration_min >= 25 THEN 'longa'
-			WHEN trip_duration_min >= 5 THEN 'normal'
+			WHEN trip_duration_min > 20 THEN 'longa'
+			WHEN trip_duration_min >= 11 THEN 'normal'
 			ELSE 'curta'
 		END AS trip_duration_category,
 		

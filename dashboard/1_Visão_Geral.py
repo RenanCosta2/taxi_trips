@@ -8,7 +8,14 @@ st.set_page_config(layout="wide")
 init_filters()
 render_filters()
 
-filters = st.session_state.filters
+filters = {
+    "shift": st.session_state.shift,
+    "payment": st.session_state.payment,
+    "vendor": st.session_state.vendor,
+    "hour_range": st.session_state.hour_range,
+    "days": st.session_state.days
+}
+
 where, params = build_where(filters)
 
 # ===== DASHBOARD VISÃO GERAL =====
@@ -100,7 +107,7 @@ col5.metric("Duração Média", f"{row['avg_duration_min']:.1f} min")
 
 col7, col8 = st.columns(2)
 
-col7.subheader("Total de Viagens por Turno")
+col7.subheader("Viagens por Turno")
 col7.bar_chart(trips_shift.set_index("shift")["total_trips"], sort=True)
 
 fig = px.pie(
@@ -112,10 +119,10 @@ col8.subheader("Distribuição de Viagens por Tipo de Pagamento")
 col8.plotly_chart(fig, use_container_width=True)
 
 col9, col10 = st.columns(2)
-col9.subheader("Total de Viagens por Dia")
+col9.subheader("Viagens por Dia")
 col9.line_chart(daily.set_index("date")["total_trips"])
 
-col10.subheader("Total de Receita por Dia")
+col10.subheader("Receita por Dia")
 col10.line_chart(daily.set_index("date")["total_revenue"])
 
 fig = px.density_heatmap(

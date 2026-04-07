@@ -37,11 +37,22 @@ def get_filters():
                 VendorID
         """
     )
+    days_of_week = run_query(
+        """
+            SELECT DISTINCT 
+                day_name 
+            FROM 
+                fct_trips 
+            ORDER BY 
+                day_of_week
+        """
+    )
 
     return (
         shifts["shift"].tolist(),
         payments["payment_type_name"].tolist(),
-        vendors["VendorID"].tolist()
+        vendors["VendorID"].tolist(),
+        days_of_week["day_name"].tolist()
     )
 
 def init_filters():
@@ -50,35 +61,58 @@ def init_filters():
             "shift": "Todos",
             "payment": "Todos",
             "vendor": "Todos",
-            "hour_range": (0, 23)
+            "hour_range": (0, 23),
+            "days": []
         }
 
 def render_filters():
-    shifts, payments, vendors = get_filters()
+    shifts, payments, vendors, days = get_filters()
 
     st.sidebar.header("Filtros")
 
-    filters = st.session_state.filters
+    # inicialização segura
+    if "shift" not in st.session_state:
+        st.session_state.shift = "Todos"
+    if "payment" not in st.session_state:
+        st.session_state.payment = "Todos"
+    if "vendor" not in st.session_state:
+        st.session_state.vendor = "Todos"
+    if "hour_range" not in st.session_state:
+        st.session_state.hour_range = (0, 23)
+    if "days" not in st.session_state:
+        st.session_state.days = []
 
-    filters["hour_range"] = st.sidebar.slider(
-        "Intervalo de Hora", 0, 23, filters["hour_range"]
+    # widgets com key (ESSENCIAL)
+    st.sidebar.slider(
+        "Intervalo de Hora",
+        0, 23,
+        key="hour_range"
     )
 
-    filters["shift"] = st.sidebar.selectbox(
-        "Turno", 
+    st.sidebar.selectbox(
+        "Turno",
         ["Todos"] + shifts,
+        key="shift",
         format_func=lambda x: x.title() if x != "Todos" else x
     )
 
-    filters["payment"] = st.sidebar.selectbox(
-        "Pagamento", 
+    st.sidebar.selectbox(
+        "Pagamento",
         ["Todos"] + payments,
+        key="payment",
         format_func=lambda x: x.title() if x != "Todos" else x
     )
 
-    filters["vendor"] = st.sidebar.selectbox(
-        "Fabricante", 
+    st.sidebar.selectbox(
+        "Fabricante",
         ["Todos"] + vendors,
+        key="vendor"
+    )
+
+    st.sidebar.multiselect(
+        "Dia da Semana",
+        options=days,
+        key="days"
     )
 
 def build_where(filters):
@@ -96,6 +130,11 @@ def build_where(filters):
     if filters["vendor"] != "Todos":
         clauses.append("VendorID = ?")
         params.append(filters["vendor"])
+
+    if filters["days"]:
+        placeholders = ",".join(["?"] * len(filters["days"]))
+        clauses.append(f"day_name IN ({placeholders})")
+        params.extend(filters["days"])
 
     start, end = filters["hour_range"]
     clauses.append("trip_hour BETWEEN ? AND ?")

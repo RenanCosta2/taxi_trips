@@ -8,7 +8,14 @@ st.set_page_config(layout="wide")
 init_filters()
 render_filters()
 
-filters = st.session_state.filters
+filters = {
+    "shift": st.session_state.shift,
+    "payment": st.session_state.payment,
+    "vendor": st.session_state.vendor,
+    "hour_range": st.session_state.hour_range,
+    "days": st.session_state.days
+}
+
 where, params = build_where(filters)
 
 # ===== DASHBOARD DESEMPENHO FORNECEDOR =====
@@ -76,9 +83,9 @@ col5.metric("Velocidade Média", f"{row['avg_speed']:.2f} mph")
 
 col6, col7 = st.columns(2)
 
-col6.subheader("Total de Viagens por Fornecedor")
+col6.subheader("Viagens por Fornecedor")
 col6.bar_chart(kpis_vendor.set_index("VendorID")["total_trips"], sort=True)
-col7.subheader("Total de Receita por Fornecedor")
+col7.subheader("Receita por Fornecedor")
 col7.bar_chart(kpis_vendor.set_index("VendorID")["total_revenue"], sort=True)
 
 fig = px.density_heatmap(

@@ -18,7 +18,9 @@ SELECT
     END AS day_name,
 
     trip_distance,
+    distance_category,
     trip_duration_min,
+    trip_duration_category,
     trip_hour,
     speed_mph,
     passenger_count,
