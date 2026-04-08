@@ -138,5 +138,5 @@ fig = px.density_heatmap(
     }
 )
 
-st.subheader("Heatmap de Viagens por Dia e Hora")
+st.subheader("Heatmap de Viagens por Dia da Semana e Hora")
 st.plotly_chart(fig, use_container_width=True)
