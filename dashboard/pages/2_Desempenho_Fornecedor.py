@@ -50,23 +50,51 @@ def get_kpis_vendor(where, params):
 @st.cache_data
 def get_heatmap_speed(where, params):
     return run_query(f"""
-        SELECT  
+        SELECT
+            VendorID,
             trip_hour,
-            day_name,
             AVG(speed_mph) AS avg_speed
-        FROM fct_trips
+        FROM 
+            fct_trips
         {where}
-        GROUP BY
-            trip_hour,
-            day_of_week,
-            day_name
-        ORDER BY
-            day_of_week DESC 
+        GROUP BY 
+            VendorID, trip_hour
+    """, params)
+
+@st.cache_data
+def get_distance_mix(where, params):
+    return run_query(f"""
+        SELECT
+            VendorID,
+            distance_category,
+            COUNT(*) AS total_trips
+        FROM 
+            fct_trips
+        {where}
+        GROUP BY 
+            VendorID, distance_category
+    """, params)
+
+
+@st.cache_data
+def get_payment_mix(where, params):
+    return run_query(f"""
+        SELECT
+            VendorID,
+            payment_type_name,
+            COUNT(*) AS total_trips
+        FROM 
+            fct_trips
+        {where}
+        GROUP BY 
+            VendorID, payment_type_name
     """, params)
 
 kpis = get_kpis(where, params)
 kpis_vendor = get_kpis_vendor(where, params)
 heatmap = get_heatmap_speed(where, params)
+distance_mix = get_distance_mix(where, params)
+payment_mix = get_payment_mix(where, params)
 
 # ===== UI =====
 st.title("Dashboard NYC Taxi Trips")
@@ -88,18 +116,54 @@ col6.bar_chart(kpis_vendor.set_index("VendorID")["total_trips"], sort=True)
 col7.subheader("Receita por Fornecedor")
 col7.bar_chart(kpis_vendor.set_index("VendorID")["total_revenue"], sort=True)
 
+col8, col9 = st.columns(2)
+fig_dist = px.bar(
+    distance_mix,
+    x="VendorID",
+    y="total_trips",
+    color="distance_category",
+    barmode="relative",
+    category_orders={
+        "distance_category": ["Curta", "Média", "Longa"]
+    },
+    labels={
+        "VendorID": "Fornecedor",
+        "total_trips": "Total de Viagens",
+        "distance_category": "Distância"
+    }
+)
+
+col8.subheader("Viagens por Fornecedor e Distância")
+col8.plotly_chart(fig_dist, use_container_width=True)
+
+fig_pay = px.bar(
+    payment_mix,
+    x="VendorID",
+    y="total_trips",
+    color="payment_type_name",
+    barmode="relative",
+    labels={
+        "VendorID": "Fornecedor",
+        "total_trips": "Total de Viagens",
+        "payment_type_name": "Tipo de Pagamento"
+    }
+)
+
+col9.subheader("Distribuição de Pagamentos por Fornecedor")
+col9.plotly_chart(fig_pay, use_container_width=True)
+
 fig = px.density_heatmap(
     heatmap,
     x="trip_hour",
-    y="day_name",
+    y="VendorID",
     z="avg_speed",
     color_continuous_scale="Blues",
     labels={
         "trip_hour": "Hora do Dia",
-        "day_name": "Dia da Semana",
+        "VendorID": "Fornecedor",
         "avg_speed": "Média de Velocidade (mph)"
     }
 )
 
-st.subheader("Heatmap de Velocidade (mph) por Dia e Hora")
+st.subheader("Heatmap de Velocidade (mph) por Fornecedor")
 st.plotly_chart(fig, use_container_width=True)
