@@ -159,6 +159,7 @@ O dashboard permite a aplicação de filtros dinâmicos que impactam todas as m�
 
 Os filtros disponíveis são:
 
+- Intervalo de Hora
 - Turno
 - Tipo de Pagamento
 - Fornecedor (VendorID)
